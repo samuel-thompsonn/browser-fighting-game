@@ -2,29 +2,82 @@ import Canvas from "./Canvas";
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import Visualizer from "./Visualizer";
-
-interface CharacterUpdate {
-  id: string;
-  position: {
-    x: number;
-    y: number;
-  },
-  state: string;
-  health: number;
-};
+import { CharacterUpdate } from "./InterfaceUtils";
+import ControlsHandler from "./ControlsHandler";
+import controlsMap from './ControlsMap.json'
+import { ControlsEventHandler } from "./InterfaceUtils";
 
 function App() {
 
   const [visualizers] = useState<Map<string, Visualizer>>(
     new Map([["0", new Visualizer()]])
   );
+
+  const [controlsHandler] = useState<ControlsHandler>(initControlsHandler());
+
+  const socket = useRef<Socket>(initSocket());
   
-  const initSocket = () => {
+  function initControlsHandler(): ControlsHandler {
+    let controlsHandlers: ControlsEventHandler[] = Object.entries(controlsMap).map(([controlLabel, controlKey]) => ({
+      key: controlKey,
+      onPress: () => {
+        console.log(`Pressed ${controlLabel}`)
+        socket.current.emit('controlsChange', {
+          'control': controlLabel,
+          'status': 'pressed'
+        })
+      },
+      onRelease: () => {
+        console.log(`Released ${controlLabel}`)
+        socket.current.emit('controlsChange', {
+          'control': controlLabel,
+          'status': 'released'
+        })
+      }
+    }));
+    console.log(controlsHandlers);
+    return new ControlsHandler(...controlsHandlers);
+    // return new ControlsHandler(
+    //   {
+    //     key: controlsMap.moveLeft,
+    //     onPress: () => {
+    //       console.log('Pressed moveLeft');
+    //       socket.current.emit('controlsChange', {
+    //         'control': 'moveLeft',
+    //         'status': 'pressed'
+    //       });
+    //     },
+    //     onRelease: () => {
+    //       console.log('Released moveLeft');
+    //       socket.current.emit('controlsChange', {
+    //         'control': 'moveLeft',
+    //         'status': 'released'
+    //       });
+    //     },
+    //   },
+    //   {
+    //     key: controlsMap.moveRight,
+    //     onPress: () => {
+    //       socket.current.emit('controlsChange', {
+    //         'control': 'moveRight',
+    //         'status': 'pressed'
+    //       });
+    //     },
+    //     onRelease: () => {
+    //       socket.current.emit('controlsChange', {
+    //         'control': 'moveRight',
+    //         'status': 'released'
+    //       });
+    //     },
+    //   }
+    // );
+  }
+
+  function initSocket() {
     console.log("Actually instantiating the scoket...");
     return io('http://localhost:3001');
   }
 
-  const socket = useRef<Socket>(initSocket());
 
   const initSocketIo = (newSocket:Socket) => {
     newSocket.on('accepted_connection', () => {
@@ -41,23 +94,23 @@ function App() {
         return;
       }
       targetVisualizer.setAnimationState(update.state);
+      targetVisualizer.setPosition(update.position);
     });
   }
 
   const handleKeyDown = (event:KeyboardEvent) => {
-    console.log(event.key);
-    if (event.key === 'a') {
-      socket.current.emit('move_left');
-    }
-    else if (event.key === 'd') {
-      socket.current.emit('move_right');
-    }
+    controlsHandler.keyPressed(event.key);
+  }
+
+  const handleKeyUp = (event:KeyboardEvent) => {
+    controlsHandler.keyReleased(event.key);
   }
 
   useEffect(() => {
     console.log("Initializing socket...");
     initSocketIo(socket.current);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
   }, []);
 
 

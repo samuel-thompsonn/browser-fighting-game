@@ -1,16 +1,33 @@
 import {
-  AnimationState,
-  CharacterFileData,
+  ControlsChange,
   Position,
   TransitionInfo,
 } from './AnimationUtil';
+import { CharacterFileData, AnimationState, FileAnimationState } from './CharacterFileInterface';
 import CharacterListener from './CharacterListener';
+
+function loadAnimationState(stateData: FileAnimationState): AnimationState {
+  const controlsMap = new Map<string, string>();
+  if (stateData.transitions.controls) {
+    stateData.transitions.controls.forEach(({ control, destination }) => {
+      controlsMap.set(control, destination);
+    });
+  }
+  return {
+    id: stateData.id,
+    transitions: {
+      default: stateData.transitions.default,
+      controls: controlsMap,
+    },
+    effects: stateData.effects,
+  };
+}
 
 function getAnimationGraph(characterData: CharacterFileData): Map<string, AnimationState> {
   const animationStates = new Map<string, AnimationState>();
   characterData.animations.forEach((animation) => {
     animation.states.forEach((state) => {
-      animationStates.set(state.id, state);
+      animationStates.set(state.id, loadAnimationState(state));
     });
   });
   return animationStates;
@@ -25,8 +42,14 @@ export default class Character {
 
   position: Position;
 
+  movementSpeed: number;
+
+  controlsMap: Map<string, boolean>;
+
   constructor(characterData: CharacterFileData, startPosition: Position) {
+    this.controlsMap = new Map<string, boolean>();
     this.position = startPosition;
+    this.movementSpeed = characterData.stats.movementSpeed;
     this.animationStates = getAnimationGraph(characterData);
     const initialState = this.animationStates.get(characterData.initialState);
     if (!initialState) {
@@ -47,6 +70,17 @@ export default class Character {
     });
   }
 
+  changePosition(deltaPosition: Position): void {
+    this.position = {
+      x: this.position.x + deltaPosition.x,
+      y: this.position.y + deltaPosition.y,
+    };
+  }
+
+  updateControls({ control, status }: ControlsChange): void {
+    this.controlsMap.set(control, status === 'pressed');
+  }
+
   // perform the appropriate state transition given the relevant info
   // examples of relevant info:
   //   - colliding
@@ -57,8 +91,28 @@ export default class Character {
   //     - jumping
   //     - moving left or right
   //     - attacking
-  updateSelf(relevantInfo: TransitionInfo): void {
-    const nextStateID = this.currentState.transitions.default;
+  updateSelf(relevantInfo: TransitionInfo, elapsedSeconds: number): void {
+    if (this.currentState.effects) {
+      if (this.currentState.effects.move) {
+        const movementAmount = this.currentState.effects.move;
+        const deltaPosition = {
+          x: movementAmount.x * this.movementSpeed * elapsedSeconds,
+          y: movementAmount.y * this.movementSpeed * elapsedSeconds,
+        };
+        this.changePosition(deltaPosition);
+      }
+    }
+    let nextStateID = this.currentState.transitions.default;
+    const controls = ['moveRight', 'moveLeft'];
+    controls.forEach((controlID) => {
+      if (this.controlsMap.get(controlID) === true) {
+        const controlTransitions = this.currentState.transitions.controls;
+        const destination = controlTransitions.get(controlID);
+        if (destination) {
+          nextStateID = destination;
+        }
+      }
+    });
     if (!nextStateID) { return; }
     this.setState(nextStateID);
   }

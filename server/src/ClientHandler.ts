@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
-import { AnimationState, Position } from './AnimationUtil';
+import { ControlsChange, Position } from './AnimationUtil';
+import { AnimationState } from './CharacterFileInterface';
 import CharacterListener from './CharacterListener';
 import GameModel from './GameModel';
 
@@ -16,14 +17,9 @@ export default class ClientHandler implements CharacterListener {
     this.socket = socket;
     this.characterID = undefined;
     socket.on('disconnect', () => onDisconnect(socket));
-    socket.on('move_right', () => {
+    socket.on('controlsChange', (controlsChange: ControlsChange) => {
       if (this.characterID) {
-        gameInterface.moveCharacterRight(this.characterID);
-      }
-    });
-    socket.on('move_left', () => {
-      if (this.characterID) {
-        gameInterface.moveCharacterLeft(this.characterID);
+        gameInterface.updateCharacterControls(this.characterID, controlsChange);
       }
     });
   }

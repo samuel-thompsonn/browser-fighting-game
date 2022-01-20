@@ -1,3 +1,4 @@
+import { ControlsChange } from './AnimationUtil';
 import Character from './Character';
 import CharacterListener from './CharacterListener';
 import characterA from './character_files/characterA.json';
@@ -13,7 +14,7 @@ export default class GameModel {
   }
 
   createCharacter(listener: CharacterListener): string {
-    const newCharacter = new Character(characterA, { x: 100, y: 120 });
+    const newCharacter = new Character(characterA, { x: 100, y: 50 });
     newCharacter.subscribe(listener);
     const characterID = `${this.characterCounter}`;
     this.characters.set(characterID, newCharacter);
@@ -45,9 +46,15 @@ export default class GameModel {
     });
   }
 
+  updateCharacterControls(characterID: string, controlsChange: ControlsChange) {
+    const targetCharacter = this.characters.get(characterID);
+    if (!targetCharacter) { return; }
+    targetCharacter.updateControls(controlsChange);
+  }
+
   updateGame(elapsedSeconds: number) {
     this.characters.forEach((character) => {
-      character.updateSelf({ default: 'yes' });
+      character.updateSelf({ default: 'yes' }, elapsedSeconds);
     });
   }
 }

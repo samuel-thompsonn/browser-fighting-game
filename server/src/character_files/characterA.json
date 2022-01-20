@@ -1,39 +1,91 @@
 {
   "name": "characterA",
   "initialState": "idle1",
+  "stats": {
+      "movementSpeed": 10
+  },
   "animations": [
-    {
-      "name": "character1_idle",
-      "states": [
-        {
-          "id": "idle1",
-          "transitions": {
-            "default": "idle2"
-          },
-          "sprite": "idle1"
-        },
-        {
-          "id": "idle2",
-          "transitions": {
-            "default": "idle3"
-          },
-          "sprite": "idle2"
-        },
-        {
-          "id": "idle3",
-          "transitions": {
-            "default": "idle4"
-          },
-          "sprite": "idle3"
-        },
-        {
-          "id": "idle4",
-          "transitions": {
-            "default": "idle1"
-          },
-          "sprite": "idle4"
-        }
-      ]
-    }
+      {
+          "name": "idle",
+          "states": [
+              {
+                  "id": "idle1",
+                  "transitions": {
+                      "default": "idle2",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left1"
+                      }]
+                  }
+              },
+              {
+                  "id": "idle2",
+                  "transitions": {
+                      "default": "idle3",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left1"
+                      }]
+                  }
+              },
+              {
+                  "id": "idle3",
+                  "transitions": {
+                      "default": "idle4",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left1"
+                      }]
+                  }
+              },
+              {
+                  "id": "idle4",
+                  "transitions": {
+                      "default": "idle1",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left1"
+                      }]
+                  }
+              }
+          ]
+      },
+      {
+          "name": "walkLeft",
+          "states": [
+              {
+                  "id": "left1",
+                  "transitions": {
+                      "default": "idle1",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left2"
+                      }]
+                  },
+                  "effects": {
+                      "move": {
+                          "x": -1.0,
+                          "y": 0
+                      }
+                  }
+              },
+              {
+                  "id": "left2",
+                  "transitions": {
+                      "default": "idle1",
+                      "controls": [{
+                          "control": "moveLeft",
+                          "destination": "left1"
+                      }]
+                  },
+                  "effects": {
+                      "move": {
+                          "x": -1.0,
+                          "y": 0
+                      }
+                  }
+              }
+          ]
+      }
   ]
 }

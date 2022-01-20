@@ -9,7 +9,6 @@ interface CanvasProps {
 
 const Canvas = ({ visualizers }:CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // const [visualizer] = useState<Visualizer>(new Visualizer());
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,8 +16,6 @@ const Canvas = ({ visualizers }:CanvasProps) => {
     const canvasContext = canvas.getContext('2d');
     if (canvasContext === null) { return; }
     
-    let frameCount:number = 0;
-    let time = new Date().getTime() / 1000;
     let animationFrameId:number;
 
     // const image = imageRef.current;
@@ -33,22 +30,18 @@ const Canvas = ({ visualizers }:CanvasProps) => {
 
     const draw = (
       canvasContext: CanvasRenderingContext2D,
-      elapsedSeconds: number
     ) => {        
       canvasContext!.fillStyle = `#000000`;
       const width = canvasContext.canvas.width;
       const height = canvasContext.canvas.height;
       canvasContext.clearRect(0, 0, width, height);
       visualizers.forEach((visualizer) => {
-        visualizer.drawSelf(canvasContext, elapsedSeconds);
+        visualizer.drawSelf(canvasContext);
       });
     };
 
     const render = () => {
-      frameCount ++;
-      let nextTime = new Date().getTime() / 1000;
-      draw(canvasContext, nextTime - time);
-      time = nextTime;
+      draw(canvasContext);
       animationFrameId = window.requestAnimationFrame(render);
     };
     render();

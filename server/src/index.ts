@@ -8,7 +8,7 @@ import characterA from './character_files/characterA.json';
 import GameModel from './GameModel';
 
 const PORT = 3001;
-const SECONDS_PER_GAME_LOOP = 1;
+const SECONDS_PER_GAME_LOOP = 0.10;
 
 const clientHandlers = new Map<string, ClientHandler>();
 const gameModel = new GameModel();
@@ -55,8 +55,14 @@ io.on('connection', (socket) => {
   });
 });
 
+let ellipsisCount = 1;
+const maxEllipsis = 3;
 const gameLoopInterval = setInterval(() => {
-  logVerbose('Updating all characters...');
+  ellipsisCount %= (maxEllipsis + 1);
+  const ellipsis = '.'.repeat(ellipsisCount) + ' '.repeat(maxEllipsis - ellipsisCount);
+  process.stdout.write(`\rUpdating all characters${ellipsis}`);
+  ellipsisCount += 1;
+  gameModel.updateGame(SECONDS_PER_GAME_LOOP);
 }, 1000 * SECONDS_PER_GAME_LOOP);
 
 server.listen(PORT, () => {

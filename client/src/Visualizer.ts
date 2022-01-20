@@ -1,49 +1,49 @@
-import animationData from "./animation/idle1/idle1.json";
-
-const ANIM_FRAMES_PER_SECOND = 2;
-const NUM_ANIM_FRAMES = 4;
+import animationData from "./animation/idle1/characterA.json";
+import { Position } from './InterfaceUtils';
 
 interface AnimationState {
-  id: string,
-  transitions: Map<string, string>,
-  image: HTMLImageElement
-};
-
-function getTransitionMap(transitions: object):Map<string, string> {
-  const transitionMap = new Map<string, string>();
-  for (let [event, nextState] of Object.entries(transitions)) {
-    transitionMap.set(event, nextState);
+  id: string;
+  image: HTMLImageElement;
+  imageOffset: {
+    x: number;
+    y: number;
+  };
+  imageSize: {
+    width: number;
+    height: number;
   }
-  return transitionMap;
-}
+};
 
 class Visualizer {
   images: Map<string, HTMLImageElement>;
-  totalSeconds: number;
   currentState: AnimationState|undefined;
   animationStates: Map<string, AnimationState>;
+  currentPosition: Position;
 
   constructor() {
-    this.totalSeconds = 0;
+    this.currentPosition = {
+      x: 0,
+      y: 0
+    };
     this.animationStates = new Map<string, AnimationState>();
+    const loadedImages = new Map<string, HTMLImageElement>();
     this.images = new Map();
     for (let animationState of animationData.character1_idle) {
-      
-      const image = new Image();
-      // const sourceString = idleFrames.get(animationState.sprite);
-      // if (sourceString !== undefined) {
-      image.src = `../sprites/${animationState.sprite}.jpg`;
-      // }
-      image.onerror = (event) => {
-        // alert("Failed to load an image!");
-        console.log(event);
-        console.log("FAILED TO LOAD AN AIMGE")
+      let image = loadedImages.get(animationState.sprite.file);
+      if (!image) {
+        image = new Image();
+        image.src = `../sprites/${animationState.sprite.file}`;
+        image.onerror = (event) => {
+          console.log(event);
+          console.log("FAILED TO LOAD AN IMAGE")
+        }
+        loadedImages.set(animationState.sprite.file, image);
       }
-      // this.images.set(animationState.id, image);
       this.animationStates.set(animationState.id, {
         id: animationState.id,
-        transitions: getTransitionMap(animationState.transitions),
-        image: image
+        image: image,
+        imageOffset: animationState.sprite.offset,
+        imageSize: animationState.sprite.size
       });
       this.currentState = this.animationStates.get(animationData.character1_idle[0].id);
     }
@@ -58,28 +58,25 @@ class Visualizer {
     }
   }
 
+  setPosition(newPosition: Position) {
+    this.currentPosition = newPosition;
+  }
+
   drawSelf(
     canvas: CanvasRenderingContext2D,
-    elapsedSeconds: number,
-  ):void {
-    // Increment counter by elapsed seconds
-    // If the time has come to go to the next frame:
-    //   Figure out what is the next frame by the traversal from
-    //     the current frame
-    //   Transition to that frame
-
-    // this.totalSeconds += elapsedSeconds;
-    // const secondsPerFrame = 1 / ANIM_FRAMES_PER_SECOND;
+  ):void {;
     if (!this.currentState) { return; }
-    // if (this.totalSeconds >= secondsPerFrame) {
-    //   this.totalSeconds = this.totalSeconds % secondsPerFrame;
-    //   const nextStateId = this.currentState.transitions.get("default");
-    //   if (!nextStateId) { return; }
-    //   const nextState = this.animationStates.get(nextStateId);
-    //   if (!nextState) { return; }
-    //   this.currentState = nextState;
-    // }
-    canvas.drawImage(this.currentState.image, 0, 0);
+    canvas.drawImage(
+      this.currentState.image,
+      this.currentState.imageOffset.x,
+      this.currentState.imageOffset.y,
+      this.currentState.imageSize.width,
+      this.currentState.imageSize.height,
+      this.currentPosition.x, 
+      this.currentPosition.y,
+      this.currentState.imageSize.width,
+      this.currentState.imageSize.height
+    );
   }
 }
 
