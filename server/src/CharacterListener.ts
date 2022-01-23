@@ -1,6 +1,7 @@
 import { Position } from './AnimationUtil';
+import { CharacterStatus } from './CharacterDataInterfaces';
 import { AnimationState } from './CharacterFileInterface';
 
 export default abstract class CharacterListener {
-  abstract handleCharacterUpdate(newState: AnimationState, newPosition: Position): void
+  abstract handleCharacterUpdate(newStatus: CharacterStatus): void
 }

@@ -85,7 +85,7 @@ function App() {
       console.log("Requesting character creation...");
       newSocket.emit('create_character');
     });
-    newSocket.on('update_character', (update:CharacterUpdate) => {
+    newSocket.on('updateCharacter', (update:CharacterUpdate) => {
       console.log("Received an update!")
       console.log(update);
       const targetVisualizer = visualizers.get(update.id);
@@ -93,7 +93,7 @@ function App() {
         console.log(`No visualizer with id ${update.id}`);
         return;
       }
-      targetVisualizer.setAnimationState(update.state);
+      targetVisualizer.setAnimationState(update.state, update.collisionInfo);
       targetVisualizer.setPosition(update.position);
     });
   }

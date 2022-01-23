@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
 import { ControlsChange, Position } from './AnimationUtil';
+import { CharacterStatus } from './CharacterDataInterfaces';
 import { AnimationState } from './CharacterFileInterface';
 import CharacterListener from './CharacterListener';
 import GameModel from './GameModel';
@@ -28,12 +29,18 @@ export default class ClientHandler implements CharacterListener {
     this.characterID = characterID;
   }
 
-  handleCharacterUpdate(newState: AnimationState, newPosition: Position): void {
-    this.socket.emit('update_character', {
+  handleCharacterUpdate({
+    animationState,
+    position,
+    healthInfo,
+    collisionInfo,
+  }: CharacterStatus): void {
+    this.socket.emit('updateCharacter', {
       id: '0',
-      position: newPosition,
-      state: newState.id,
-      health: 100,
+      position,
+      state: animationState.id,
+      healthInfo,
+      collisionInfo,
     });
   }
 }

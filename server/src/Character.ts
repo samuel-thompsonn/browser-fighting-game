@@ -3,8 +3,21 @@ import {
   Position,
   TransitionInfo,
 } from './AnimationUtil';
-import { CharacterFileData, AnimationState, FileAnimationState } from './CharacterFileInterface';
+import {
+  CharacterFileData,
+  AnimationState,
+  FileAnimationState,
+  FileCollisionData,
+  CollisionData,
+} from './CharacterFileInterface';
 import CharacterListener from './CharacterListener';
+import controlsLabels from './controls/ControlsLabels.json';
+
+function loadCollisionData(
+  collisionData: FileCollisionData | undefined,
+): CollisionData | undefined {
+  return collisionData;
+}
 
 function loadAnimationState(stateData: FileAnimationState): AnimationState {
   const controlsMap = new Map<string, string>();
@@ -20,6 +33,7 @@ function loadAnimationState(stateData: FileAnimationState): AnimationState {
       controls: controlsMap,
     },
     effects: stateData.effects,
+    collisions: loadCollisionData(stateData.collisions),
   };
 }
 
@@ -46,7 +60,16 @@ export default class Character {
 
   controlsMap: Map<string, boolean>;
 
+  healthInfo: {
+    health: number;
+    maxHealth: number;
+  };
+
   constructor(characterData: CharacterFileData, startPosition: Position) {
+    this.healthInfo = {
+      health: characterData.stats.maxHealth,
+      maxHealth: characterData.stats.maxHealth,
+    };
     this.controlsMap = new Map<string, boolean>();
     this.position = startPosition;
     this.movementSpeed = characterData.stats.movementSpeed;
@@ -65,9 +88,7 @@ export default class Character {
 
   setPosition(newPosition: Position): void {
     this.position = newPosition;
-    this.listeners.forEach((listener) => {
-      listener.handleCharacterUpdate(this.currentState, this.getPosition());
-    });
+    this.#notifyListeners();
   }
 
   changePosition(deltaPosition: Position): void {
@@ -103,8 +124,7 @@ export default class Character {
       }
     }
     let nextStateID = this.currentState.transitions.default;
-    const controls = ['moveRight', 'moveLeft'];
-    controls.forEach((controlID) => {
+    controlsLabels.forEach((controlID) => {
       if (this.controlsMap.get(controlID) === true) {
         const controlTransitions = this.currentState.transitions.controls;
         const destination = controlTransitions.get(controlID);
@@ -119,15 +139,33 @@ export default class Character {
 
   subscribe(listener: CharacterListener) {
     this.listeners.push(listener);
-    listener.handleCharacterUpdate(this.currentState, this.getPosition());
+    this.#notifyListener(listener);
   }
 
   setState(newStateID:string) {
     const nextState = this.animationStates.get(newStateID);
     if (!nextState) { return; }
     this.currentState = nextState;
-    this.listeners.forEach((listener) => {
-      listener.handleCharacterUpdate(this.currentState, this.getPosition());
+    this.#notifyListeners();
+  }
+
+  /**
+   * Notifies all listeners of the up-to-date current state
+   */
+  #notifyListeners(): void {
+    this.listeners.forEach((listener) => this.#notifyListener(listener));
+  }
+
+  /**
+   * Notifies a listener of the current state
+   * @param listener The listener to notify of the current state
+   */
+  #notifyListener(listener: CharacterListener): void {
+    listener.handleCharacterUpdate({
+      animationState: this.currentState,
+      position: this.getPosition(),
+      healthInfo: this.healthInfo,
+      collisionInfo: this.currentState.collisions,
     });
   }
 }

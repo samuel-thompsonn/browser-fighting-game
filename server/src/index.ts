@@ -2,9 +2,7 @@ import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import cors from 'cors';
-import Character from './Character';
 import ClientHandler from './ClientHandler';
-import characterA from './character_files/characterA.json';
 import GameModel from './GameModel';
 
 const PORT = 3001;
@@ -57,7 +55,10 @@ io.on('connection', (socket) => {
 
 let ellipsisCount = 1;
 const maxEllipsis = 3;
-const gameLoopInterval = setInterval(() => {
+// We can use the return value of setInterval() to get
+// an interval object which we can reference later to pause or modify
+// the game loop's pacing
+setInterval(() => {
   ellipsisCount %= (maxEllipsis + 1);
   const ellipsis = '.'.repeat(ellipsisCount) + ' '.repeat(maxEllipsis - ellipsisCount);
   process.stdout.write(`\rUpdating all characters${ellipsis}`);

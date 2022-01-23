@@ -1,18 +1,32 @@
 import animationData from "./animation/idle1/characterA.json";
-import { Position } from './InterfaceUtils';
+import { Position, AnimationState, CollisionData, CollisionRectangle } from './InterfaceUtils';
 
-interface AnimationState {
-  id: string;
-  image: HTMLImageElement;
-  imageOffset: {
-    x: number;
-    y: number;
-  };
-  imageSize: {
-    width: number;
-    height: number;
-  }
-};
+const CHARACTER_SIZE = 64;
+
+function drawCollisionRectangle(
+  canvas: CanvasRenderingContext2D,
+  rectangle: CollisionRectangle,
+  color: string
+  ) {
+    canvas.strokeStyle = color;
+    canvas.globalAlpha = 0.5;
+    canvas.strokeRect(
+      rectangle.x,
+      rectangle.y,
+      rectangle.width,
+      rectangle.height
+    );
+    canvas.fillStyle = color;
+    canvas.globalAlpha = 0.25;
+    canvas.fillRect(
+      rectangle.x,
+      rectangle.y,
+      rectangle.width,
+      rectangle.height
+    );
+    canvas.globalAlpha = 1.0;
+}
+
 
 class Visualizer {
   images: Map<string, HTMLImageElement>;
@@ -49,9 +63,11 @@ class Visualizer {
     }
   }
 
-  setAnimationState(newState: string) {
-    if (this.animationStates.has(newState)) {
-      this.currentState = this.animationStates.get(newState);
+  setAnimationState(newState: string, collisionInfo: CollisionData|undefined) {
+    const nextState = this.animationStates.get(newState);
+    if (nextState) {
+      this.currentState = nextState;
+      this.currentState.collisionData = collisionInfo;
     }
     else {
       console.log(`Visualizer doesn't have state ${newState}. Aborting...`);
@@ -77,6 +93,29 @@ class Visualizer {
       this.currentState.imageSize.width,
       this.currentState.imageSize.height
     );
+    if (this.currentState.collisionData) {
+      const drawHitbox = (
+        color: string,
+        hitbox: CollisionRectangle
+      ) => {
+        drawCollisionRectangle(canvas,
+          {
+            x: this.currentPosition.x + (hitbox.x * CHARACTER_SIZE),
+            y: this.currentPosition.y + (hitbox.y * CHARACTER_SIZE),
+            width: hitbox.width * CHARACTER_SIZE,
+            height: hitbox.height * CHARACTER_SIZE,
+          },
+          color
+        );
+      };
+      this.currentState.collisionData.hitbox?.rectangles.forEach((hitbox) => {
+        canvas.strokeStyle = "#FFAA00";
+        drawHitbox("#AA0000", hitbox);
+      });
+      this.currentState.collisionData.hurtbox?.rectangles.forEach((hurtbox) => {
+        drawHitbox("#00FF55", hurtbox);
+      });
+    }
   }
 }
 

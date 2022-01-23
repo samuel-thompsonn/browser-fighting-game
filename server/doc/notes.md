@@ -1,6 +1,15 @@
 ## TODO:
 - Make sure that the rate at which animations update is independent of
 the rate at which the game sends updates to clients
+  - That doesn't make sense. Messages are sent to the client as soon as an
+  update occurs, and updates occur once every game loop which is on a fixed
+  timer.
+  - The real problem is that the update speed is independent from the
+  movement speed. However, running at fewer updates per second should not
+  change movement per update.
+  - Solution: Make a fixed number of state updates per second, but a non-fixed
+  number of game loop runs per second.
+    - But what could be the motivation for this? hmm.
 - Make it possible for an effect to be applied pre- or post- change,
 so that movement isn't offset by one frame
 - Make it possible to define an animation as a homogeneous group of states
@@ -8,6 +17,14 @@ in a characte file, so that I don't have to make 60+ nodes for it by hand.
 - Improve design by extracting out functionality and refactoring controls
 so that there's a controller interfacing with data gatherers (clientlistener)
 and with data consumers (characters)
+- Functionality:
+  - Hitboxes/Hurtboxes
+    - How will they be defined?
+    - How will they be implemented?
+    - Idea: It's like XML so it's in a JSON file and it consists of a list of
+    circles/ellipses/boxes, and together they make up the hitbox.
+  - Make sure mutliple clients receive updates about every character upon
+  state changes
 
 ## Design dilemmas:
 - Idea 1:
