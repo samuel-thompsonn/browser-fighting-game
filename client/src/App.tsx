@@ -10,7 +10,7 @@ import { ControlsEventHandler } from "./InterfaceUtils";
 function App() {
 
   const [visualizers] = useState<Map<string, Visualizer>>(
-    new Map([["0", new Visualizer()]])
+    new Map()
   );
 
   const [controlsHandler] = useState<ControlsHandler>(initControlsHandler());
@@ -37,40 +37,6 @@ function App() {
     }));
     console.log(controlsHandlers);
     return new ControlsHandler(...controlsHandlers);
-    // return new ControlsHandler(
-    //   {
-    //     key: controlsMap.moveLeft,
-    //     onPress: () => {
-    //       console.log('Pressed moveLeft');
-    //       socket.current.emit('controlsChange', {
-    //         'control': 'moveLeft',
-    //         'status': 'pressed'
-    //       });
-    //     },
-    //     onRelease: () => {
-    //       console.log('Released moveLeft');
-    //       socket.current.emit('controlsChange', {
-    //         'control': 'moveLeft',
-    //         'status': 'released'
-    //       });
-    //     },
-    //   },
-    //   {
-    //     key: controlsMap.moveRight,
-    //     onPress: () => {
-    //       socket.current.emit('controlsChange', {
-    //         'control': 'moveRight',
-    //         'status': 'pressed'
-    //       });
-    //     },
-    //     onRelease: () => {
-    //       socket.current.emit('controlsChange', {
-    //         'control': 'moveRight',
-    //         'status': 'released'
-    //       });
-    //     },
-    //   }
-    // );
   }
 
   function initSocket() {
@@ -83,18 +49,23 @@ function App() {
     newSocket.on('accepted_connection', () => {
       console.log("Received 'accepted_connection' signal!");
       console.log("Requesting character creation...");
-      newSocket.emit('create_character');
+      newSocket.emit('createCharacter');
     });
     newSocket.on('updateCharacter', (update:CharacterUpdate) => {
       console.log("Received an update!")
       console.log(update);
-      const targetVisualizer = visualizers.get(update.id);
+      let targetVisualizer = visualizers.get(update.id);
       if (!targetVisualizer) {
-        console.log(`No visualizer with id ${update.id}`);
-        return;
+        console.log(`No visualizer with id ${update.id} -- creating one!`);
+        targetVisualizer = new Visualizer();
+        visualizers.set(update.id, targetVisualizer);
       }
       targetVisualizer.setAnimationState(update.state, update.collisionInfo);
       targetVisualizer.setPosition(update.position);
+    });
+
+    newSocket.on('removeCharacter', (removedCharacterIndex:string) => {
+      visualizers.delete(removedCharacterIndex);
     });
   }
 

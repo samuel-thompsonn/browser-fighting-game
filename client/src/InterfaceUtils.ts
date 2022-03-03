@@ -21,7 +21,11 @@ export interface CollisionRectangle {
 
 export interface CollisionData {
   hitbox?: {
-    rectangles: CollisionRectangle[];
+    rectangles: {
+      collisionBox: CollisionRectangle;
+      damage: number;
+      knockback: number;
+    }[];
   }
   hurtbox?: {
     rectangles: CollisionRectangle[];

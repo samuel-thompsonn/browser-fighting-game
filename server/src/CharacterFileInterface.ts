@@ -5,13 +5,19 @@ export interface CollisionRectangle {
   height: number;
 }
 
+export interface HitboxRectangle {
+  collisionBox: CollisionRectangle;
+  damage: number;
+  knockback: number;
+}
+
 export interface CollisionData {
-  hitbox?: {
-    rectangles: CollisionRectangle[];
-  }
   hurtbox?: {
     rectangles: CollisionRectangle[];
-  }
+  };
+  hitbox?: {
+    rectangles: HitboxRectangle[];
+  };
 }
 
 export interface AnimationState {
@@ -36,7 +42,7 @@ export interface FileCollisionData {
     rectangles: CollisionRectangle[];
   }
   hitbox?: {
-    rectangles: CollisionRectangle[];
+    rectangles: HitboxRectangle[];
   }
 }
 

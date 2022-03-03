@@ -145,12 +145,16 @@
                     },
                     "hitbox": {
                         "rectangles": [
-                            {
-                                "x": -0.5,
-                                "y": 0.25,
-                                "width": 1.0,
-                                "height": 0.5
-                            }
+                          {
+                            "collisionBox": {
+                              "x": -0.5,
+                              "y": 0.25,
+                              "width": 1.0,
+                              "height": 0.5
+                            },                                
+                            "damage": 10,
+                            "knockback": -1.0
+                          }
                         ]
                     }
                 }
@@ -172,14 +176,18 @@
                       ]
                     },
                     "hitbox": {
-                        "rectangles": [
-                            {
-                                "x": -0.5,
-                                "y": 0.25,
-                                "width": 1.0,
-                                "height": 0.5
-                            }
-                        ]
+                      "rectangles": [
+                        {
+                          "collisionBox": {
+                            "x": -0.5,
+                            "y": 0.25,
+                            "width": 1.0,
+                            "height": 0.5
+                          },                                
+                          "damage": 10,
+                          "knockback": -1.0
+                        }
+                      ]
                     }
                 }
             }

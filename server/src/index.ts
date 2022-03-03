@@ -32,8 +32,15 @@ app.use(cors({
 }));
 
 const handleCreateCharacter = (client:ClientHandler) => {
-  const characterID = gameModel.createCharacter(client);
+  const characterID = gameModel.createCharacter();
   client.setCharacterID(characterID);
+};
+
+const handleClientDisconnect = (client: ClientHandler): void => {
+  logVerbose('a user disconnected....!');
+  gameModel.removeCharacterListener(client);
+  const removedCharacter = client.getCharacterID();
+  if (removedCharacter) { gameModel.removeCharacter(removedCharacter); }
 };
 
 io.on('connection', (socket) => {
@@ -41,14 +48,15 @@ io.on('connection', (socket) => {
   const newClient = new ClientHandler(
     socket,
     gameModel,
-    () => { logVerbose('a user disconnected....!'); },
+    handleClientDisconnect,
   );
   clientHandlers.set(`${socketCounter}`, newClient);
+  gameModel.addCharacterListener(newClient);
   // logVerbose(clientHandlers.toString());
   socketCounter += 1;
   socket.emit('accepted_connection');
 
-  socket.on('create_character', () => {
+  socket.on('createCharacter', () => {
     handleCreateCharacter(newClient);
   });
 });

@@ -110,7 +110,7 @@ class Visualizer {
       };
       this.currentState.collisionData.hitbox?.rectangles.forEach((hitbox) => {
         canvas.strokeStyle = "#FFAA00";
-        drawHitbox("#AA0000", hitbox);
+        drawHitbox("#AA0000", hitbox.collisionBox);
       });
       this.currentState.collisionData.hurtbox?.rectangles.forEach((hurtbox) => {
         drawHitbox("#00FF55", hurtbox);

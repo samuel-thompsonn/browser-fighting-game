@@ -7,6 +7,7 @@ import { AnimationState, CollisionData } from './CharacterFileInterface';
  * state transition map.
  */
 export interface CharacterStatus {
+  characterID: string;
   animationState: AnimationState;
   position: Position;
   healthInfo: {
