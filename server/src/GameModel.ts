@@ -116,10 +116,13 @@ export default class GameModel implements GameInternal {
         const innerCollisionData = innerCharacter.getCollisionData();
         if (!(outerCollisionData && innerCollisionData)) { return; }
         // Check for collisions:
-        BasicCollisionChecker.hasCollision(
+        const detectedCollision = BasicCollisionChecker.hasCollision(
           outerCollisionData,
           innerCollisionData,
         );
+        if (detectedCollision) {
+          console.log(`Collision between a ${detectedCollision.firstEntity.type} and ${detectedCollision.secondEntity.type} `);
+        }
       });
     });
     deltaPositions.forEach((deltaPosition: Position, character: Character) => {

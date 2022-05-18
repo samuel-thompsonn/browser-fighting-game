@@ -78,3 +78,29 @@ export interface CharacterFileData {
       states: FileAnimationState[];
   }[]
 }
+
+export interface FileAnimationDescription {
+  name: string;
+  id: string;
+  numFrames: number;
+  state: {
+    transitions: {
+      default: string;
+      controls?: {
+        control: string;
+        destination: string;
+      }[]
+    }
+    collisions?: FileCollisionData;
+  }
+}
+
+export interface SimpleCharacterFileData {
+  name: string;
+  initialState: string;
+  stats: {
+    movementSpeed: number; // Units per second
+    maxHealth: number;
+  }
+  animations: FileAnimationDescription[];
+}

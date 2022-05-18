@@ -6,7 +6,7 @@ import ClientHandler from './ClientHandler';
 import GameModel from './GameModel';
 
 const PORT = 3001;
-const SECONDS_PER_GAME_LOOP = 0.10;
+const SECONDS_PER_GAME_LOOP = 0.0333;
 
 const clientHandlers = new Map<string, ClientHandler>();
 const gameModel = new GameModel();
