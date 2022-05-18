@@ -1,5 +1,6 @@
-import animationData from "./animation/idle1/characterA.json";
+import animationData from "./animation/idle1/characterASimple.json";
 import { Position, AnimationState, CollisionData, CollisionRectangle } from './InterfaceUtils';
+import SimpleAnimationLoader from './SimpleAnimationLoader';
 
 const CHARACTER_SIZE = 64;
 
@@ -29,7 +30,6 @@ function drawCollisionRectangle(
 
 
 class Visualizer {
-  images: Map<string, HTMLImageElement>;
   currentState: AnimationState|undefined;
   animationStates: Map<string, AnimationState>;
   currentPosition: Position;
@@ -39,28 +39,7 @@ class Visualizer {
       x: 0,
       y: 0
     };
-    this.animationStates = new Map<string, AnimationState>();
-    const loadedImages = new Map<string, HTMLImageElement>();
-    this.images = new Map();
-    for (let animationState of animationData.character1_idle) {
-      let image = loadedImages.get(animationState.sprite.file);
-      if (!image) {
-        image = new Image();
-        image.src = `../sprites/${animationState.sprite.file}`;
-        image.onerror = (event) => {
-          console.log(event);
-          console.log("FAILED TO LOAD AN IMAGE")
-        }
-        loadedImages.set(animationState.sprite.file, image);
-      }
-      this.animationStates.set(animationState.id, {
-        id: animationState.id,
-        image: image,
-        imageOffset: animationState.sprite.offset,
-        imageSize: animationState.sprite.size
-      });
-      this.currentState = this.animationStates.get(animationData.character1_idle[0].id);
-    }
+    this.animationStates = new SimpleAnimationLoader().loadAnimations(animationData);
   }
 
   setAnimationState(newState: string, collisionInfo: CollisionData|undefined) {

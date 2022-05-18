@@ -1,0 +1,45 @@
+[
+  {
+    "id": "idle",
+    "numFrames": 4,
+    "filePath": "characterASpriteSheet.jpg",
+    "offset": {
+      "x": 0,
+      "y": 0
+    },
+    "frameSize": {
+      "width": 64,
+      "height": 64
+    },
+    "stride": 66
+  },
+  {
+    "id": "left",
+    "numFrames": 4,
+    "filePath": "characterASpriteSheet.jpg",
+    "offset": {
+      "x": 0,
+      "y": 66
+    },
+    "frameSize": {
+      "width": 64,
+      "height": 64
+    },
+    "stride": 66
+  },
+  {
+    "id": "attackLeft",
+    "numFrames": 2,
+    "filePath": "characterASpriteSheet.jpg",
+    "offset": {
+      "x": 0,
+      "y": 198
+    },
+    "frameSize": {
+      "width": 64,
+      "height": 64
+    },
+    "stride": 66
+  }
+  
+]

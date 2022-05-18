@@ -12,6 +12,21 @@ export interface AnimationState {
   collisionData?: CollisionData;
 };
 
+export interface AnimationDescription {
+  id: string;
+  numFrames: number;
+  filePath: string;
+  offset: {
+    x: number;
+    y: number;
+  }
+  frameSize: {
+    width: number;
+    height: number;
+  }
+  stride: number;
+}
+
 export interface CollisionRectangle {
   x: number;
   y: number;
