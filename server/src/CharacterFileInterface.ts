@@ -46,14 +46,16 @@ export interface FileCollisionData {
   }
 }
 
+export interface ControlsTransition {
+  control: string;
+  destination: string;
+}
+
 export interface FileAnimationState {
   id: string;
   transitions: {
     default: string;
-    controls?: {
-      control: string;
-      destination: string;
-    }[]
+    controls?: ControlsTransition[]
     // Should have other transitions based on inputs
   };
   collisions?: FileCollisionData;
@@ -86,10 +88,13 @@ export interface FileAnimationDescription {
   state: {
     transitions: {
       default: string;
-      controls?: {
-        control: string;
-        destination: string;
-      }[]
+      controls?: ControlsTransition[]
+    }
+    effects?: {
+      move?: { // x and y movement are proportional to movementSpeed stat
+        x: number;
+        y: number;
+      }
     }
     collisions?: FileCollisionData;
   }

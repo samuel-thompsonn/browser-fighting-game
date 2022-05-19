@@ -3,7 +3,9 @@ import BasicCollisionChecker from './BasicCollisionChecker';
 import Character from './Character';
 import CharacterListener from './CharacterListener';
 import characterA from './character_files/characterA.json';
+import characterASimple from './character_files/characterASimple.json';
 import GameInternal from './GameInternal';
+import SimpleCharacterFileReader from './SimpleCharacterFileReader';
 
 export default class GameModel implements GameInternal {
   #characters: Map<string, Character>;
@@ -41,7 +43,8 @@ export default class GameModel implements GameInternal {
 
   createCharacter(): string {
     const characterID = `${this.#characterCounter}`;
-    const newCharacter = new Character(characterA, { x: 100, y: 50 }, characterID);
+    // const ReferenceNewCharacter = new Character(characterA, { x: 100, y: 50 }, characterID);
+    const newCharacter = SimpleCharacterFileReader.readCharacterFile(characterASimple, characterID)
     this.#characterListeners.forEach((listener) => {
       newCharacter.subscribe(listener);
     });

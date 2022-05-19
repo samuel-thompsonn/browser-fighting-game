@@ -67,6 +67,12 @@
               }
             ]
           }
+        },
+        "effects": {
+            "move": {
+                "x": -1.0,
+                "y": 0
+            }
         }
       }
     },
@@ -76,7 +82,13 @@
       "numFrames": 2,
       "state": {
         "transitions": {
-          "default": "idle"
+          "default": "idle",
+          "controls": [
+            {
+              "control": "lightAttack",
+              "destination": "attackLeft"
+            }
+          ]
         },
         "collisions": {
           "hurtbox": {
@@ -88,31 +100,21 @@
                 "height": 1.0
               }
             ]
-          }
-        },
-        "hurtbox": {
-          "rectangles": [
+          },
+          "hitbox": {
+            "rectangles": [
               {
-                  "x": 0,
-                  "y": 0,
+                "collisionBox": {
+                  "x": -0.5,
+                  "y": 0.25,
                   "width": 1.0,
-                  "height": 1.0
+                  "height": 0.5
+                },                                
+                "damage": 10,
+                "knockback": -1.0
               }
-          ]
-        },
-        "hitbox": {
-          "rectangles": [
-            {
-              "collisionBox": {
-                "x": -0.5,
-                "y": 0.25,
-                "width": 1.0,
-                "height": 0.5
-              },                                
-              "damage": 10,
-              "knockback": -1.0
-            }
-          ]
+            ]
+          }
         }
       }
     }

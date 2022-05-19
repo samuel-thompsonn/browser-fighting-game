@@ -68,22 +68,29 @@ export default class Character {
     maxHealth: number;
   };
 
-  constructor(characterData: CharacterFileData, startPosition: Position, characterID: string) {
+  constructor(
+    characterID: string,
+    startPosition: Position,
+    movementSpeed: number,
+    maxHealth: number,
+    animationStates: Map<string, AnimationState>,
+    initialStateID: string,
+  ) {
+    this.#controlsMap = new Map<string, boolean>();
+    this.#listeners = [];
     this.#characterID = characterID;
     this.#healthInfo = {
-      health: characterData.stats.maxHealth,
-      maxHealth: characterData.stats.maxHealth,
+      health: maxHealth,
+      maxHealth: maxHealth,
     };
-    this.#controlsMap = new Map<string, boolean>();
     this.#position = startPosition;
-    this.#movementSpeed = characterData.stats.movementSpeed;
-    this.#animationStates = getAnimationGraph(characterData);
-    const initialState = this.#animationStates.get(characterData.initialState);
+    this.#movementSpeed = movementSpeed;
+    this.#animationStates = animationStates;
+    const initialState = this.#animationStates.get(initialStateID);
     if (!initialState) {
-      throw new Error("The initial state's ID isn't in the state graph.");
+      throw new Error(`Initial state ${initialStateID} not found in states map!`);
     }
     this.#currentState = initialState;
-    this.#listeners = [];
   }
 
   getPosition(): Position {

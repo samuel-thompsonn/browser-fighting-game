@@ -1,4 +1,35 @@
-## 3/2/2021
+## 5/19/2022
+- So I've run into a small conundrum when it comes to deining walking
+animation in a character file. It's with controls transitions. When you
+are in the idle animation, pressing moveLeft should take you to the first
+frame of walking left. When you are in the walking left animation,
+pressing left should take you to whatever the next frame is of the
+current animation, and otherwise we should cancel and default to idle.
+So how do I define this sort of behavior?
+  - Idea 1: Make it so that, if the control leads us to a DIFFERENT animation,
+  then we go to the first frame of it, and if it leads us to the SAME animation,
+  we go to the NEXT frame of it. In what situation would this backfire? One
+  where pressing the control should restart the current animation. I don't
+  think that is common at all, so I think we are okay.
+    - This could also backfire in the case where we have a chain of distinct
+    animations that require you to hold the same button. We would need to
+    define some sort of special type of control input where we go to the
+    next animation if we are still holding down the key while on the LAST
+    frame of the current animation. This can be done as a non-default option
+    that we can read from the file, right?
+- Next problem: Default transitions don't make consistent sense. In the idle
+animation, doing nothing should take you to the next idle frame no matter what.
+In the left animation, doing nothing should take you to the first idle frame,
+rather than the next frame of the current animation.
+  - Solution: Same deal as before--if it takes you to your current animation,
+  then you should progress, and if it takes you to a different animation,
+  you should go to frame 1.
+  - Really, there should be an object oriented approach where each transition
+  lists the name of a "destination resolver", which is an object that
+  determines the mapping. That way we can handle arbitrarily complicated
+  destination behavior.
+
+## 3/2/2022
 - I'm trying to figure out why there's an extra Visualizer in the top left
 corner of the client whenever it is not the first to connect to the
 server.
