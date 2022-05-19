@@ -4,13 +4,15 @@ import { AnimationDescription, AnimationState } from './InterfaceUtils';
 function generateAnimationState(
   animationDescription: AnimationDescription,
   index: number,
-  image: HTMLImageElement
+  image: HTMLImageElement,
+  statesPerFrame: number,
 ): AnimationState {
+  const strideMultiplier = Math.floor(index / statesPerFrame);
   return {
     id: `${animationDescription.id}${index + 1}`,
     image: image,
     imageOffset: {
-      x: animationDescription.offset.x + (+ animationDescription.stride * index),
+      x: animationDescription.offset.x + (animationDescription.stride * strideMultiplier),
       y: animationDescription.offset.y
     },
     imageSize: animationDescription.frameSize
@@ -22,6 +24,10 @@ export default class SimpleAnimationLoader implements AnimationLoader {
     const animationStates = new Map<string, AnimationState>()
     const loadedImages = new Map<string, HTMLImageElement>();
     for (let animationDescription of animationData) {
+      let statesPerFrame = 1;
+      if (animationDescription.statesPerFrame) {
+        statesPerFrame = animationDescription.statesPerFrame;
+      }
       let image = loadedImages.get(animationDescription.filePath);
       if (!image) {
         image = new Image();
@@ -36,7 +42,8 @@ export default class SimpleAnimationLoader implements AnimationLoader {
         const generatedState = generateAnimationState(
           animationDescription,
           i,
-          image
+          image,
+          statesPerFrame,
         );
         animationStates.set(generatedState.id, generatedState);
       }

@@ -52,8 +52,6 @@ function App() {
       newSocket.emit('createCharacter');
     });
     newSocket.on('updateCharacter', (update:CharacterUpdate) => {
-      console.log("Received an update!")
-      console.log(update);
       let targetVisualizer = visualizers.get(update.id);
       if (!targetVisualizer) {
         console.log(`No visualizer with id ${update.id} -- creating one!`);

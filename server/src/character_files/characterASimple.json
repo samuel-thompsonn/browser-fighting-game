@@ -9,7 +9,7 @@
     {
       "name": "idle",
       "id": "idle",
-      "numFrames": 4,
+      "numFrames": 60,
       "state": {
         "transitions": {
           "default": "idle",

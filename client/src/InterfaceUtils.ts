@@ -25,6 +25,7 @@ export interface AnimationDescription {
     height: number;
   }
   stride: number;
+  statesPerFrame?: number;
 }
 
 export interface CollisionRectangle {
