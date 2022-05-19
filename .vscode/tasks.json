@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "tsc",
+      "group": "build",
+      "label": "build server",
+      "detail": "NODE_ENV=development tsc -p",
+      "options": {
+        "cwd": "server"
+      }
+    }
+  ]
+}
