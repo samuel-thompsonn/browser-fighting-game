@@ -2,12 +2,13 @@
   "name": "Character A",
   "initialState": "idle",
   "stats": {
-    "movementSpeed": 10,
-    "maxHealth": 100
+    "movementSpeed": 50,
+    "maxHealth": 100,
+    "knockbackStrength": 50
   },
   "animations": [
     {
-      "name": "idle",
+      "name": "idle facing left",
       "id": "idle",
       "numFrames": 60,
       "state": {
@@ -24,12 +25,92 @@
             {
               "control": "lightAttack",
               "destination": "attackLeft"
+            },
+            {
+              "control": "moveRight",
+              "destination": "right"
             }
           ],
           "collisions": [
             {
-              "entityType": "hitbox",
-              "destination": "knockback"
+              "foreignEntityType": "hitbox",
+              "selfEntityType": "hurtbox",
+              "destination": "knockback",
+              "effects": [
+                {
+                  "effectType": "knockback",
+                  "argumentLabels": [
+                    "knockback"
+                  ]
+                },
+                {
+                  "effectType": "damage",
+                  "argumentLabels": [
+                    "damage"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "collisions": [
+          {
+            "entityType": "hurtbox",
+            "rectangles": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1.0,
+                "height": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "idle facing right",
+      "id": "idleRight",
+      "numFrames": 60,
+      "state": {
+        "transitions": {
+          "default": {
+            "destination": "idle",
+            "transitionType": "afterEnd"
+          },
+          "controls": [
+            {
+              "control": "moveLeft",
+              "destination": "left"
+            },
+            {
+              "control": "lightAttack",
+              "destination": "attackRight"
+            },
+            {
+              "control": "moveRight",
+              "destination": "right"
+            }
+          ],
+          "collisions": [
+            {
+              "foreignEntityType": "hitbox",
+              "selfEntityType": "hurtbox",
+              "destination": "knockback",
+              "effects": [
+                {
+                  "effectType": "knockback",
+                  "argumentLabels": [
+                    "knockback"
+                  ]
+                },
+                {
+                  "effectType": "damage",
+                  "argumentLabels": [
+                    "damage"
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -91,6 +172,52 @@
       }
     },
     {
+      "name": "walk right",
+      "id": "right",
+      "numFrames": 4,
+      "state": {
+        "transitions": {
+          "default": {
+            "destination": "idleRight",
+            "transitionType": "interrupt"
+          },
+          "controls": [
+            {
+              "control": "moveRight",
+              "destination": "right"
+            },
+            {
+              "control": "moveLeft",
+              "destination": "left"
+            },
+            {
+              "control": "lightAttack",
+              "destination": "attackRight"
+            }
+          ]
+        },
+        "collisions": [
+          {
+            "entityType": "hurtbox",
+            "rectangles": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1.0,
+                "height": 1.0
+              }
+            ]
+          }
+        ],
+        "effects": {
+            "move": {
+                "x": 1.0,
+                "y": 0
+            }
+        }
+      }
+    },
+    {
       "name": "attack left",
       "id": "attackLeft",
       "numFrames": 2,
@@ -134,6 +261,59 @@
             "rectangles": [
               {
                 "x": -0.5,
+                "y": 0.25,
+                "width": 1.0,
+                "height": 0.5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "attack right",
+      "id": "attackRight",
+      "numFrames": 2,
+      "state": {
+        "transitions": {
+          "default": {
+            "destination": "idleRight",
+            "transitionType": "afterEnd"
+          },
+          "controls": [
+            {
+              "control": "lightAttack",
+              "destination": "attackRight"
+            }
+          ]
+        },
+        "collisions": [
+          {
+            "entityType": "hurtbox",
+            "rectangles": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1.0,
+                "height": 1.0
+              }
+            ]
+          },
+          {
+            "entityType": "hitbox",
+            "properties": [
+              {
+                "propertyName": "damage",
+                "propertyValue": "10"
+              },
+              {
+                "propertyName": "knockback",
+                "propertyValue": "1.0"
+              }
+            ],
+            "rectangles": [
+              {
+                "x": 0.5,
                 "y": 0.25,
                 "width": 1.0,
                 "height": 0.5

@@ -1,5 +1,17 @@
 import { Position } from './AnimationUtil';
 import { AnimationState, FileCollisionItem } from './CharacterFileInterface';
+import { CollisionEntity } from './CollisionEntity';
+
+export interface ResolvedCollisionEvent {
+  selfEntity: {
+    type: string;
+    entity: CollisionEntity;
+  }
+  otherEntity: {
+    type: string;
+    entity: CollisionEntity;
+  }
+};
 
 /**
  * Describes the current status of a character, sufficient enough that

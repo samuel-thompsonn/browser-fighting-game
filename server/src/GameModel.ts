@@ -2,7 +2,6 @@ import { ControlsChange, Position } from './AnimationUtil';
 import BasicCollisionChecker from './BasicCollisionChecker';
 import Character from './Character';
 import CharacterListener from './CharacterListener';
-import characterA from './character_files/characterA.json';
 import characterASimple from './character_files/characterASimple.json';
 import GameInternal from './GameInternal';
 import SimpleCharacterFileReader from './SimpleCharacterFileReader';

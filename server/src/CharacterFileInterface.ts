@@ -1,4 +1,5 @@
 import { CollisionEntity } from "./CollisionEntity";
+import CollisionTransition from "./CollisionTransition";
 
 export interface CharacterDimensions {
   width: number;
@@ -23,7 +24,7 @@ export interface AnimationState {
   transitions: {
     default: string;
     controls: Map<string, string>;
-    // Should have other transitions based on inputs
+    collisions: CollisionTransition[];
   }
   effects?: {
     move?: { // x and y movement are proportional to movementSpeed stat
@@ -58,6 +59,7 @@ export interface FileAnimationState {
     default: string;
     controls?: ControlsTransition[]
     // Should have other transitions based on inputs
+    collisions?: CollisionTransitionDescription[]
   };
   collisions?: FileCollisionItem[];
   effects?: {
@@ -75,11 +77,24 @@ export interface CharacterFileData {
   stats: {
     movementSpeed: number; // Units per second
     maxHealth: number;
+    knockbackStrength: number;
   }
   animations: {
       name: string;
       states: FileAnimationState[];
   }[]
+}
+
+export interface TransitionEffectDescription {
+  effectType: string;
+  argumentLabels: string[];
+}
+
+export interface CollisionTransitionDescription {
+  foreignEntityType: string;
+  selfEntityType: string;
+  destination: string;
+  effects: TransitionEffectDescription[];
 }
 
 export interface FileAnimationDescription {
@@ -92,7 +107,8 @@ export interface FileAnimationDescription {
         destination: string;
         transitionType: string;
       };
-      controls?: ControlsTransition[]
+      controls?: ControlsTransition[];
+      collisions?: CollisionTransitionDescription[];
     }
     effects?: {
       move?: { // x and y movement are proportional to movementSpeed stat
@@ -110,6 +126,7 @@ export interface SimpleCharacterFileData {
   stats: {
     movementSpeed: number; // Units per second
     maxHealth: number;
+    knockbackStrength: number;
   }
   animations: FileAnimationDescription[];
 }

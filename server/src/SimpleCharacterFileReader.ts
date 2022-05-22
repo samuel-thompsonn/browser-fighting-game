@@ -1,4 +1,5 @@
 import { Position } from './AnimationUtil';
+import BasicCollisionTransition from './BasicCollisionTransition';
 import Character from './Character';
 import {
   AnimationState,
@@ -8,8 +9,10 @@ import {
   FileAnimationState,
   ControlsTransition,
   FileCollisionItem,
+  CollisionTransitionDescription,
 } from './CharacterFileInterface';
 import { CollisionEntity } from './CollisionEntity';
+import CollisionTransition from './CollisionTransition';
 
 function getAnimationStateID(animationName: string, orderIndex: number) {
   return `${animationName}${orderIndex+1}`;
@@ -120,6 +123,14 @@ function loadCollisionEntities(collisionData: FileCollisionItem[]): CollisionEnt
   return collisionEntities;
 }
 
+function getStateCollisionTransitions(collisionTransitionData: CollisionTransitionDescription[]): CollisionTransition[] {
+  const collisionTransitions: CollisionTransition[] = [];
+  collisionTransitionData.forEach((transitionDescription) => {
+    collisionTransitions.push(new BasicCollisionTransition(transitionDescription))
+  })
+  return collisionTransitions;
+}
+
 function getAnimationStates(animationDescription: FileAnimationDescription): AnimationState[] {
   const generatedStates:AnimationState[] = [];
   for (let i = 0; i < animationDescription.numFrames; i += 1) {
@@ -139,12 +150,19 @@ function getAnimationStates(animationDescription: FileAnimationDescription): Ani
     if (animationDescription.state.collisions) {
       stateCollisions = loadCollisionEntities(animationDescription.state.collisions);
     }
+
+    const stateCollisionDescriptions = animationDescription.state.transitions.collisions;
+    let stateCollisionTransitions:CollisionTransition[] = [];
+    if (stateCollisionDescriptions) {
+      stateCollisionTransitions = getStateCollisionTransitions(stateCollisionDescriptions);
+    }
     
     generatedStates.push({
       id,
       transitions: {
         default: defaultNextState,
         controls: controlsTransitions,
+        collisions: stateCollisionTransitions,
       },
       effects: animationDescription.state.effects,
       collisions: stateCollisions,
@@ -178,24 +196,17 @@ function getAnimationGraph(characterData: FileAnimationDescription[]): Map<strin
  */
 export default class SimpleCharacterFileReader {
   static readCharacterFile(characterData: SimpleCharacterFileData, characterID: string): Character {
-    // produces the following: from file
-    // 1. max health
-    // 2. movement speed
-    // 3. animation states map
-    // 4. initial state
-
     const animationGraph = getAnimationGraph(characterData.animations);
-
     const startPositon:Position = {
       x: 50,
       y: 0,
     };
-
     return new Character(
       characterID,
       startPositon,
       characterData.stats.movementSpeed,
       characterData.stats.movementSpeed,
+      characterData.stats.knockbackStrength,
       animationGraph,
       getAnimationStateID(characterData.initialState, 0),
     );

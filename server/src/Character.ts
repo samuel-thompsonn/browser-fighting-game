@@ -10,14 +10,17 @@ import {
   FileCollisionItem,
   CharacterDimensions,
 } from './CharacterFileInterface';
+import { ResolvedCollisionEvent } from './CharacterDataInterfaces';
 import CharacterListener from './CharacterListener';
 import controlsLabels from './controls/ControlsLabels.json';
 import { CollisionEvent } from './GameInterfaces';
 import GameInternal from './GameInternal';
+import CharacterInternal from './CharacterInternal';
 
 const CHARACTER_SIZE = 64;
 
-export default class Character {
+
+export default class Character implements CharacterInternal {
   #animationStates: Map<string, AnimationState>;
 
   #currentState: AnimationState;
@@ -30,6 +33,8 @@ export default class Character {
 
   #movementSpeed: number;
 
+  #knockbackStrength: number;
+
   #controlsMap: Map<string, boolean>;
 
   #characterID: string;
@@ -39,23 +44,27 @@ export default class Character {
     maxHealth: number;
   };
 
-  #currentCollision: {
-    thisEntity: {
-      type: string;
-    },
-    otherEntity: {
-      type: string;
-    }
-  } | undefined;
+  #currentCollision: ResolvedCollisionEvent| undefined;
+
+  #nextStateID: string | undefined;
+
+  #deltaPosition: Position;
 
   constructor(
     characterID: string,
     startPosition: Position,
     movementSpeed: number,
+    knockbackStrength: number,
     maxHealth: number,
     animationStates: Map<string, AnimationState>,
     initialStateID: string,
   ) {
+    this.#deltaPosition = {
+      x: 0,
+      y: 0
+    };
+    this.#knockbackStrength = knockbackStrength;
+    this.#nextStateID = undefined;
     this.#dimensions = {
       width: CHARACTER_SIZE,
       height: CHARACTER_SIZE,
@@ -95,14 +104,39 @@ export default class Character {
   }
 
   changePosition(deltaPosition: Position): void {
-    this.#position = {
-      x: this.#position.x + deltaPosition.x,
-      y: this.#position.y + deltaPosition.y,
-    };
+    this.#deltaPosition = {
+      x: this.#deltaPosition.x + deltaPosition.x,
+      y: this.#deltaPosition.y + deltaPosition.y
+    }
   }
 
   updateControls({ control, status }: ControlsChange): void {
     this.#controlsMap.set(control, status === 'pressed');
+  }
+
+  getCurrentHealth() {
+    return this.#healthInfo.health;
+  }
+
+  setCurrentHealth(newHealth: number) {
+    this.#healthInfo.health = newHealth;
+  }
+
+  #handlePendingCollision(): void {
+    if (this.#currentCollision) {
+      this.#consumeCollision(this.#currentCollision);
+      this.#currentCollision = undefined;
+    }
+  }
+
+  getKnockbackStrength() {
+    return this.#knockbackStrength;
+  }
+
+  #consumeCollision(collision: ResolvedCollisionEvent): void {
+    this.#currentState.transitions.collisions.forEach((collisionTransition) => {
+      collisionTransition.handleCollision(collision, this);
+    })
   }
 
   // perform the appropriate state transition given the relevant info
@@ -123,31 +157,30 @@ export default class Character {
     if (this.#currentState.effects) {
       if (this.#currentState.effects.move) {
         const movementAmount = this.#currentState.effects.move;
-        const deltaPosition = {
+        this.changePosition({
           x: movementAmount.x * this.#movementSpeed * elapsedSeconds,
-          y: movementAmount.y * this.#movementSpeed * elapsedSeconds,
-        };
-        gameInterface.moveCharacter(this, deltaPosition);
+          y: movementAmount.y * this.#movementSpeed * elapsedSeconds
+        });
       }
     }
-    let nextStateID = this.#currentState.transitions.default;
+    gameInterface.moveCharacter(this, this.#deltaPosition);
+    this.#deltaPosition = {
+      x: 0,
+      y: 0
+    }
+    this.#nextStateID = this.#currentState.transitions.default;
     controlsLabels.forEach((controlID) => {
       if (this.#controlsMap.get(controlID) === true) {
         const controlTransitions = this.#currentState.transitions.controls;
         const destination = controlTransitions.get(controlID);
         if (destination) {
-          nextStateID = destination;
+          this.#nextStateID = destination;
         }
       }
     });
-    if (this.#currentCollision) {
-      // TODO: Make this depend on the 'controls' property of the current
-      // animation state.
-      nextStateID = "knockback1"
-      this.#currentCollision = undefined;
-    }
-    if (!nextStateID) { return; }
-    this.setState(nextStateID);
+    this.#handlePendingCollision();
+    if (!this.#nextStateID) { return; }
+    this.#setState(this.#nextStateID);
   }
 
   subscribe(listener: CharacterListener) {
@@ -155,7 +188,11 @@ export default class Character {
     this.#notifyListener(listener);
   }
 
-  setState(newStateID:string) {
+  setNextState(stateID: string) {
+    this.#nextStateID = stateID;
+  }
+
+  #setState(newStateID:string) {
     const nextState = this.#animationStates.get(newStateID);
     if (!nextState) { return; }
     this.#currentState = nextState;
@@ -166,22 +203,29 @@ export default class Character {
     return this.#currentState.collisions;
   }
 
-  registerCollision(collisionEvent:CollisionEvent): void {
+  #identifyEntities(collisionEvent:CollisionEvent) {
     let selfEntity = collisionEvent.firstEntity;
     let otherEntity = collisionEvent.secondEntity;
     if (collisionEvent.secondEntity.characterID === this.#characterID) {
       selfEntity = collisionEvent.secondEntity;
       otherEntity = collisionEvent.firstEntity;
-    }
-    if (selfEntity.collisionEntity.getEntityType() === 'hurtbox' 
-        && otherEntity.collisionEntity.getEntityType() === 'hitbox') {
-      this.#currentCollision = {
-        thisEntity: {
-          type: 'hurtbox'
-        },
-        otherEntity: {
-          type: 'hitbox'
-        }
+    };
+    return {
+      selfEntity,
+      otherEntity
+    };
+  }
+
+  registerCollision(collisionEvent:CollisionEvent): void {
+    const { selfEntity, otherEntity } = this.#identifyEntities(collisionEvent);
+    this.#currentCollision = {
+      selfEntity: {
+        type: selfEntity.collisionEntity.getEntityType(),
+        entity: selfEntity.collisionEntity
+      },
+      otherEntity: {
+        type: otherEntity.collisionEntity.getEntityType(),
+        entity: otherEntity.collisionEntity
       }
     }
   }
