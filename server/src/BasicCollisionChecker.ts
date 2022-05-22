@@ -1,4 +1,6 @@
-import { CollisionData, CollisionRectangle } from './CharacterFileInterface';
+import Character from './Character';
+import { CollisionRectangle } from './CharacterFileInterface';
+import { CollisionEntity } from './CollisionEntity';
 import { CollisionEvent } from './GameInterfaces';
 
 interface Interval {
@@ -27,32 +29,67 @@ function boxesColliding(firstBox: CollisionRectangle, secondBox: CollisionRectan
   return collidingInAxis(firstBox, secondBox, 'x') && collidingInAxis(firstBox, secondBox, 'y');
 }
 
+// Collision rectangles are expressed in terms of their characters'
+// dimensions and position. For example, a rectangle with x,y of 0,0
+// and width,height of 1,1 has the same position as the character and
+// the same width and heigh as the character.
+function resolveCollisionRectangle(character: Character, collisionRectangle: CollisionRectangle): CollisionRectangle {
+  return {
+    x: character.getPosition().x + (collisionRectangle.x * character.getDimensions().width),
+    y: character.getPosition().y + (collisionRectangle.y * character.getDimensions().height),
+    width: character.getDimensions().width * collisionRectangle.width,
+    height: character.getDimensions().height * collisionRectangle.height,
+  }
+}
+
+function entitiesColliding(
+  firstCharacter: Character,
+  firstEntity: CollisionEntity,
+  secondCharacter: Character,
+  secondEntity: CollisionEntity): boolean {
+  // The current collision code, doesn't actually take into account the positions
+  // of the entities! We need to convert the boxes based on the positions and
+  // dimensions of the entities.
+  let colliding = false;
+  firstEntity.getCollisionRectangles().forEach((firstRectangle) => {
+    secondEntity.getCollisionRectangles().forEach((secondRectangle) => {
+      colliding = colliding || boxesColliding(
+        resolveCollisionRectangle(firstCharacter, firstRectangle),
+        resolveCollisionRectangle(secondCharacter, secondRectangle)
+      );
+    });
+  });
+  return colliding;
+}
+
 export default class BasicCollisionChecker {
   static hasCollision(
-    firstCharacterCollisions: CollisionData,
-    secondCharacterCollisions: CollisionData,
+    firstCharacter: Character,
+    firstCharacterCollisions: CollisionEntity[],
+    secondCharacter: Character,
+    secondCharacterCollisions: CollisionEntity[],
   ): CollisionEvent | undefined {
     let detectedCollision;
-    firstCharacterCollisions.hitbox?.rectangles.forEach((firstHitbox) => {
-      secondCharacterCollisions.hurtbox?.rectangles.forEach((secondHurtbox) => {
-        if (boxesColliding(firstHitbox.collisionBox, secondHurtbox)) {
+    firstCharacterCollisions.forEach((firstCharacterEntity) => {
+      secondCharacterCollisions.forEach((secondCharacterEntity) => {
+        if (entitiesColliding(
+          firstCharacter,
+          firstCharacterEntity,
+          secondCharacter,
+          secondCharacterEntity)) {
           detectedCollision = {
             firstEntity: {
-              type: 'hitbox',
-              collisionBox: firstHitbox,
+              characterID: firstCharacter.getCharacterID(),
+              collisionEntity: firstCharacterEntity,
             },
             secondEntity: {
-              type: 'hurtbox',
-              collisionBox: secondHurtbox,
-            },
+              characterID: secondCharacter.getCharacterID(),
+              collisionEntity: secondCharacterEntity,
+            }
           };
         }
       });
     });
-    //   for each hurtbox in second character:
-    //     check for collision
-    //   for each hitbox in second character:
-    //     check for collision
     return detectedCollision;
   }
 }

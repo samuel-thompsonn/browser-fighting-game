@@ -7,25 +7,67 @@ import {
   CharacterFileData,
   FileAnimationState,
   ControlsTransition,
+  FileCollisionItem,
 } from './CharacterFileInterface';
+import { CollisionEntity } from './CollisionEntity';
 
 function getAnimationStateID(animationName: string, orderIndex: number) {
   return `${animationName}${orderIndex+1}`;
+}
+
+function defaultNextStateInterrupt(
+  currentStateID: string,
+  currentStateIndex: number,
+  currentStateNumFrames: number,
+  destinationState: string,
+): string {
+  if (currentStateIndex === currentStateNumFrames - 1) {
+    return getAnimationStateID(destinationState, 0);
+  }
+  if (currentStateID === destinationState) {
+    return getAnimationStateID(currentStateID, currentStateIndex + 1);
+  }
+  return getAnimationStateID(destinationState, 0);
+}
+
+function defaultNextStateAfterEnd(
+  currentStateID: string,
+  currentStateIndex: number,
+  currentStateNumFrames: number,
+  destinationState: string,
+): string {
+  if (currentStateIndex === currentStateNumFrames - 1) {
+    return getAnimationStateID(destinationState, 0);
+  }
+  return getAnimationStateID(currentStateID, currentStateIndex + 1);
 }
 
 function resolveDefaultNextAnimation(
   currentStateID: string,
   currentStateIndex: number,
   currentStateNumFrames: number,
-  defaultNextStateID: string
-) {
-  if (currentStateIndex === currentStateNumFrames - 1) {
-    return getAnimationStateID(defaultNextStateID, 0);
+  defaultNextStateInfo: {
+    destination: string;
+    transitionType: string;
   }
-  if (currentStateID === defaultNextStateID) {
-    return getAnimationStateID(currentStateID, currentStateIndex + 1);
+): string {
+  if (defaultNextStateInfo.transitionType === 'interrupt') {
+    return defaultNextStateInterrupt(
+      currentStateID,
+      currentStateIndex,
+      currentStateNumFrames,
+      defaultNextStateInfo.destination,
+    );
   }
-  return getAnimationStateID(defaultNextStateID, 0);
+  else if (defaultNextStateInfo.transitionType === 'afterEnd') {
+    return defaultNextStateAfterEnd(
+      currentStateID,
+      currentStateIndex,
+      currentStateNumFrames,
+      defaultNextStateInfo.destination,
+    )
+  }
+  return getAnimationStateID(defaultNextStateInfo.destination, 0);
 }
 
 function resolveDestinationStateID(
@@ -62,8 +104,24 @@ function getStateControlsTransitions(
   return returnedTransitions;
 }
 
+function loadCollisionEntities(collisionData: FileCollisionItem[]): CollisionEntity[] {
+  const collisionEntities:CollisionEntity[] = [];
+  collisionData.forEach((collisionEntityData) => {
+    const collisionProperties = new Map<string, string>();
+    collisionEntityData.properties?.forEach((collisionProperty) => {
+      collisionProperties.set(collisionProperty.propertyName, collisionProperty.propertyValue);
+    });
+    collisionEntities.push(new CollisionEntity(
+      collisionEntityData.entityType,
+      collisionProperties,
+      collisionEntityData.rectangles,
+    ))
+  });
+  return collisionEntities;
+}
+
 function getAnimationStates(animationDescription: FileAnimationDescription): AnimationState[] {
-  const generatedStates = [];
+  const generatedStates:AnimationState[] = [];
   for (let i = 0; i < animationDescription.numFrames; i += 1) {
     const id = getAnimationStateID(animationDescription.id, i);
     const defaultNextState = resolveDefaultNextAnimation(
@@ -76,6 +134,11 @@ function getAnimationStates(animationDescription: FileAnimationDescription): Ani
       animationDescription,
       i,
     );
+
+    let stateCollisions = undefined;
+    if (animationDescription.state.collisions) {
+      stateCollisions = loadCollisionEntities(animationDescription.state.collisions);
+    }
     
     generatedStates.push({
       id,
@@ -84,7 +147,7 @@ function getAnimationStates(animationDescription: FileAnimationDescription): Ani
         controls: controlsTransitions,
       },
       effects: animationDescription.state.effects,
-      collisions: animationDescription.state.collisions,
+      collisions: stateCollisions,
     });
   }
   return generatedStates;

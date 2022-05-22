@@ -1,3 +1,10 @@
+import { CollisionEntity } from "./CollisionEntity";
+
+export interface CharacterDimensions {
+  width: number;
+  height: number;
+}
+
 export interface CollisionRectangle {
   x: number;
   y: number;
@@ -9,15 +16,6 @@ export interface HitboxRectangle {
   collisionBox: CollisionRectangle;
   damage: number;
   knockback: number;
-}
-
-export interface CollisionData {
-  hurtbox?: {
-    rectangles: CollisionRectangle[];
-  };
-  hitbox?: {
-    rectangles: HitboxRectangle[];
-  };
 }
 
 export interface AnimationState {
@@ -33,17 +31,20 @@ export interface AnimationState {
       y: number;
     }
   }
-  collisions?: CollisionData;
+  collisions?: CollisionEntity[];
   // Should also have a hitbox and hurtbox set
 }
 
-export interface FileCollisionData {
-  hurtbox?: {
-    rectangles: CollisionRectangle[];
-  }
-  hitbox?: {
-    rectangles: HitboxRectangle[];
-  }
+export interface CollisionProperty {
+  propertyName: string;
+  valueType?: string;
+  propertyValue: string;
+}
+
+export interface FileCollisionItem {
+  entityType: string;
+  properties?: CollisionProperty[];
+  rectangles: CollisionRectangle[];
 }
 
 export interface ControlsTransition {
@@ -58,7 +59,7 @@ export interface FileAnimationState {
     controls?: ControlsTransition[]
     // Should have other transitions based on inputs
   };
-  collisions?: FileCollisionData;
+  collisions?: FileCollisionItem[];
   effects?: {
     move?: { // x and y movement are proportional to movementSpeed stat
       x: number;
@@ -87,7 +88,10 @@ export interface FileAnimationDescription {
   numFrames: number;
   state: {
     transitions: {
-      default: string;
+      default: {
+        destination: string;
+        transitionType: string;
+      };
       controls?: ControlsTransition[]
     }
     effects?: {
@@ -96,7 +100,7 @@ export interface FileAnimationDescription {
         y: number;
       }
     }
-    collisions?: FileCollisionData;
+    collisions?: FileCollisionItem[];
   }
 }
 

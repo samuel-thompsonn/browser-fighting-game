@@ -1,5 +1,5 @@
 import { Position } from './AnimationUtil';
-import { AnimationState, CollisionData } from './CharacterFileInterface';
+import { AnimationState, FileCollisionItem } from './CharacterFileInterface';
 
 /**
  * Describes the current status of a character, sufficient enough that
@@ -14,5 +14,5 @@ export interface CharacterStatus {
     health: number;
     maxHealth: number;
   }
-  collisionInfo?: CollisionData;
+  collisionInfo?: FileCollisionItem[];
 }

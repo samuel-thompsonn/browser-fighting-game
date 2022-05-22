@@ -7,46 +7,15 @@ import {
   CharacterFileData,
   AnimationState,
   FileAnimationState,
-  FileCollisionData,
-  CollisionData,
+  FileCollisionItem,
+  CharacterDimensions,
 } from './CharacterFileInterface';
 import CharacterListener from './CharacterListener';
 import controlsLabels from './controls/ControlsLabels.json';
+import { CollisionEvent } from './GameInterfaces';
 import GameInternal from './GameInternal';
 
-function loadCollisionData(
-  collisionData: FileCollisionData | undefined,
-): CollisionData | undefined {
-  return collisionData;
-}
-
-function loadAnimationState(stateData: FileAnimationState): AnimationState {
-  const controlsMap = new Map<string, string>();
-  if (stateData.transitions.controls) {
-    stateData.transitions.controls.forEach(({ control, destination }) => {
-      controlsMap.set(control, destination);
-    });
-  }
-  return {
-    id: stateData.id,
-    transitions: {
-      default: stateData.transitions.default,
-      controls: controlsMap,
-    },
-    effects: stateData.effects,
-    collisions: loadCollisionData(stateData.collisions),
-  };
-}
-
-function getAnimationGraph(characterData: CharacterFileData): Map<string, AnimationState> {
-  const animationStates = new Map<string, AnimationState>();
-  characterData.animations.forEach((animation) => {
-    animation.states.forEach((state) => {
-      animationStates.set(state.id, loadAnimationState(state));
-    });
-  });
-  return animationStates;
-}
+const CHARACTER_SIZE = 64;
 
 export default class Character {
   #animationStates: Map<string, AnimationState>;
@@ -56,6 +25,8 @@ export default class Character {
   #listeners: CharacterListener[];
 
   #position: Position;
+
+  #dimensions: CharacterDimensions;
 
   #movementSpeed: number;
 
@@ -68,6 +39,15 @@ export default class Character {
     maxHealth: number;
   };
 
+  #currentCollision: {
+    thisEntity: {
+      type: string;
+    },
+    otherEntity: {
+      type: string;
+    }
+  } | undefined;
+
   constructor(
     characterID: string,
     startPosition: Position,
@@ -76,6 +56,10 @@ export default class Character {
     animationStates: Map<string, AnimationState>,
     initialStateID: string,
   ) {
+    this.#dimensions = {
+      width: CHARACTER_SIZE,
+      height: CHARACTER_SIZE,
+    }
     this.#controlsMap = new Map<string, boolean>();
     this.#listeners = [];
     this.#characterID = characterID;
@@ -93,8 +77,16 @@ export default class Character {
     this.#currentState = initialState;
   }
 
+  getCharacterID(): string {
+    return this.#characterID;
+  }
+
   getPosition(): Position {
     return this.#position;
+  }
+
+  getDimensions(): CharacterDimensions {
+    return this.#dimensions;
   }
 
   setPosition(newPosition: Position): void {
@@ -148,6 +140,12 @@ export default class Character {
         }
       }
     });
+    if (this.#currentCollision) {
+      // TODO: Make this depend on the 'controls' property of the current
+      // animation state.
+      nextStateID = "knockback1"
+      this.#currentCollision = undefined;
+    }
     if (!nextStateID) { return; }
     this.setState(nextStateID);
   }
@@ -168,6 +166,26 @@ export default class Character {
     return this.#currentState.collisions;
   }
 
+  registerCollision(collisionEvent:CollisionEvent): void {
+    let selfEntity = collisionEvent.firstEntity;
+    let otherEntity = collisionEvent.secondEntity;
+    if (collisionEvent.secondEntity.characterID === this.#characterID) {
+      selfEntity = collisionEvent.secondEntity;
+      otherEntity = collisionEvent.firstEntity;
+    }
+    if (selfEntity.collisionEntity.getEntityType() === 'hurtbox' 
+        && otherEntity.collisionEntity.getEntityType() === 'hitbox') {
+      this.#currentCollision = {
+        thisEntity: {
+          type: 'hurtbox'
+        },
+        otherEntity: {
+          type: 'hitbox'
+        }
+      }
+    }
+  }
+
   /**
    * Notifies all listeners of the up-to-date current state
    */
@@ -175,17 +193,28 @@ export default class Character {
     this.#listeners.forEach((listener) => this.#notifyListener(listener));
   }
 
+  #serializeCollisions(): FileCollisionItem[] {
+    const serializedCollisions:FileCollisionItem[] = [];
+    this.#currentState.collisions?.forEach((collisionEntity) => {
+      serializedCollisions.push(collisionEntity.getJSONSerialized());
+    });
+    return serializedCollisions;
+  }
+
   /**
    * Notifies a listener of the current state
    * @param listener The listener to notify of the current state
    */
   #notifyListener(listener: CharacterListener): void {
+    // TODO: Turn the collision entities back into something that is JSON
+    // serializeable. Or make a serializer either inside the CollisionEntity
+    // class or without. Probably inside right?
     listener.handleCharacterUpdate({
       characterID: this.#characterID,
       animationState: this.#currentState,
       position: this.getPosition(),
       healthInfo: this.#healthInfo,
-      collisionInfo: this.#currentState.collisions,
+      collisionInfo: this.#serializeCollisions(),
     });
   }
 }

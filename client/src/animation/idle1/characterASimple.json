@@ -41,6 +41,21 @@
       "height": 64
     },
     "stride": 66
+  },
+  {
+    "id": "knockback",
+    "numFrames": 30,
+    "statesPerFrame": 15,
+    "filePath": "characterASpriteSheet.jpg",
+    "offset": {
+      "x": 0,
+      "y": 264
+    },
+    "frameSize": {
+      "width": 64,
+      "height": 64
+    },
+    "stride": 66
   }
   
 ]

@@ -1,5 +1,5 @@
 import animationData from "./animation/idle1/characterASimple.json";
-import { Position, AnimationState, CollisionData, CollisionRectangle } from './InterfaceUtils';
+import { Position, AnimationState, CollisionRectangle, CollisionDataItem } from './InterfaceUtils';
 import SimpleAnimationLoader from './SimpleAnimationLoader';
 
 const CHARACTER_SIZE = 64;
@@ -42,7 +42,7 @@ class Visualizer {
     this.animationStates = new SimpleAnimationLoader().loadAnimations(animationData);
   }
 
-  setAnimationState(newState: string, collisionInfo: CollisionData|undefined) {
+  setAnimationState(newState: string, collisionInfo: CollisionDataItem[]|undefined) {
     const nextState = this.animationStates.get(newState);
     if (nextState) {
       this.currentState = nextState;
@@ -87,12 +87,19 @@ class Visualizer {
           color
         );
       };
-      this.currentState.collisionData.hitbox?.rectangles.forEach((hitbox) => {
-        canvas.strokeStyle = "#FFAA00";
-        drawHitbox("#AA0000", hitbox.collisionBox);
-      });
-      this.currentState.collisionData.hurtbox?.rectangles.forEach((hurtbox) => {
-        drawHitbox("#00FF55", hurtbox);
+      const defaultColor = "#AAAAAA";
+      const entityTypeColors = new Map([
+        ["hurtbox", "#00FF55"],
+        ["hitbox", "#AA0000"],
+      ]);
+      this.currentState.collisionData?.forEach((collisionDataItem) => {
+        collisionDataItem.rectangles.forEach((collisionRectangle) => {
+          let boxColor = entityTypeColors.get(collisionDataItem.entityType);
+          if (!boxColor) {
+            boxColor = defaultColor;
+          }
+          drawHitbox(boxColor, collisionRectangle);
+        });
       });
     }
   }

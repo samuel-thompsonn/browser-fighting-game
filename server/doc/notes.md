@@ -1,3 +1,30 @@
+## 5/21/2022
+- How do I respond to collisions? When a collision occurs, I want to notify
+each affected party so that they have the info necessary to answer the
+following questions:
+  - What algorithm should I use to determine my response?
+    - What type of entity in my dominion was involved in the collision?
+    - What type of entity NOT in my dominion was involved in the collision?
+    - What is my mapping from entity pairs to algorithms?
+  - What parameters should be given to that algorithm?
+    - What are all of the pieces of information that I can use? This is in
+    a structured environment but seems to rely on nonstructuredness, so
+    if I want to do something unstructured then I should use a map from
+    strings to strings, and then use string parsing in my collision handlers
+- So what does this decision look like in practice?
+  - In the main collision loop, I run my basic collision checker. Instead of
+  what it currently returns to me, it returns a collision event which contains
+  two collision entity objects. Each object has a string 'type' field, and
+  a list of properties. What's an example?
+    - A character has an event so that, when its hurtbox collides with a hitbox,
+    it takes damage and goes into a knockback state. Now we can say what the
+    information it needs is:
+      - What collision entity of its own was involved? **hurtbox**
+      - What foreign collision entity was involved? **hitbox**
+        - These first two things mean that we go to the "take damage" route.
+      - What is the knockback?
+      - What is the damage?
+
 ## 5/19/2022
 - So I've run into a small conundrum when it comes to deining walking
 animation in a character file. It's with controls transitions. When you

@@ -9,7 +9,7 @@ export interface AnimationState {
     width: number;
     height: number;
   }
-  collisionData?: CollisionData;
+  collisionData?: CollisionDataItem[];
 };
 
 export interface AnimationDescription {
@@ -35,19 +35,18 @@ export interface CollisionRectangle {
   height: number;
 }
 
-export interface CollisionData {
-  hitbox?: {
-    rectangles: {
-      collisionBox: CollisionRectangle;
-      damage: number;
-      knockback: number;
-    }[];
-  }
-  hurtbox?: {
-    rectangles: CollisionRectangle[];
-  }
+
+export interface CollisionProperty {
+  propertyName: string;
+  valueType?: string;
+  propertyValue: string;
 }
 
+export interface CollisionDataItem {
+  entityType: string;
+  properties?: CollisionProperty[];
+  rectangles: CollisionRectangle[];
+}
 
 export interface CharacterUpdate {
   id: string;
@@ -57,7 +56,7 @@ export interface CharacterUpdate {
     health: number;
     maxHealth: number;
   };
-  collisionInfo: CollisionData;
+  collisionInfo: CollisionDataItem[];
 }
 
 export interface Position {

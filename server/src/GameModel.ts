@@ -92,12 +92,13 @@ export default class GameModel implements GameInternal {
     targetCharacter.updateControls(controlsChange);
   }
 
-  updateGame(elapsedSeconds: number) {
+  updateCharacters(elapsedSeconds: number): void {
     this.#characters.forEach((character) => {
       character.updateSelf(this, { default: 'yes' }, elapsedSeconds);
     });
-    // Find out total delta position for each character
-    // find out new next position for each character
+  }
+
+  getCharacterPositionChanges(): Map<Character, Position> {
     const deltaPositions = new Map<Character, Position>();
     this.#characters.forEach((character) => {
       const positionChange = { x: 0, y: 0 };
@@ -108,11 +109,15 @@ export default class GameModel implements GameInternal {
       deltaPositions.set(character, positionChange);
       this.pendingMovement.set(character, []);
     });
-    // figure out collisions based on new next position
+    return deltaPositions;
+  }
+
+  registerCollisions(deltaPositions: Map<Character, Position>): void {
     this.#characters.forEach((outerCharacter) => {
       const outerDeltaPosition = deltaPositions.get(outerCharacter);
       if (!outerDeltaPosition) { return; }
       this.#characters.forEach((innerCharacter) => {
+        if (innerCharacter === outerCharacter) { return; }
         const innerDeltaPosition = deltaPositions.get(innerCharacter);
         if (!innerDeltaPosition) { return; }
         const outerCollisionData = outerCharacter.getCollisionData();
@@ -120,14 +125,22 @@ export default class GameModel implements GameInternal {
         if (!(outerCollisionData && innerCollisionData)) { return; }
         // Check for collisions:
         const detectedCollision = BasicCollisionChecker.hasCollision(
+          outerCharacter,
           outerCollisionData,
+          innerCharacter,
           innerCollisionData,
         );
-        if (detectedCollision) {
-          console.log(`Collision between a ${detectedCollision.firstEntity.type} and ${detectedCollision.secondEntity.type} `);
+        if (!detectedCollision) {
+          return;
         }
+        console.log(`Collision between character ${detectedCollision.firstEntity.characterID} and ${detectedCollision.secondEntity.characterID} `);
+        innerCharacter.registerCollision(detectedCollision);
+        outerCharacter.registerCollision(detectedCollision);
       });
     });
+  }
+
+  applyCharacterMovement(deltaPositions: Map<Character, Position>): void {
     deltaPositions.forEach((deltaPosition: Position, character: Character) => {
       const currentPosition = character.getPosition();
       character.setPosition({
@@ -135,5 +148,12 @@ export default class GameModel implements GameInternal {
         y: currentPosition.y + deltaPosition.y,
       });
     });
+  }
+
+  updateGame(elapsedSeconds: number): void {
+    this.updateCharacters(elapsedSeconds);
+    const deltaPositions = this.getCharacterPositionChanges();
+    this.registerCollisions(deltaPositions);
+    this.applyCharacterMovement(deltaPositions);
   }
 }

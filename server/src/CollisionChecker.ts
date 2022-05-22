@@ -1,9 +1,11 @@
-import { CollisionData } from './CharacterFileInterface';
 import { CollisionEvent } from './GameInterfaces';
+import { CollisionEntity } from './CollisionEntity';
 
 export default abstract class CollisionChecker {
   abstract hasCollision(
-    firstCharacterCollisions: CollisionData,
-    secondCharacterCollisions: CollisionData,
+    firstCharacterID: string,
+    firstCharacterCollisions: CollisionEntity[],
+    secondCharacterID: string,
+    secondCharacterCollisions: CollisionEntity[],
   ): CollisionEvent | undefined;
 }
